@@ -8,5 +8,8 @@ const HOSTNAME = process.env.HOSTNAME || "localhost";
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     await app.listen(PORT, HOSTNAME);
+
+    // tslint:disable-next-line:no-console
+    console.log(`Listening on ${HOSTNAME}:${PORT}`);
 }
 bootstrap();
