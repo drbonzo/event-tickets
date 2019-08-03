@@ -16,7 +16,7 @@ This is a simple administration functionality that allows to create Event, and t
 {
     "event": {
         "name": "New Event",
-        "startDateTime": "2019-09-01T18:00:00Z",
+        "startDateTime": "2019-09-01T18:00:00Z"
     },
     "ticketTypes": [
         {
