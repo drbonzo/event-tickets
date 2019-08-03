@@ -35,7 +35,7 @@ This is a simple administration functionality that allows to create Event, and t
             "name": "Type 3",
             "sellingOption": "avoid_one",
             "numberOfTickets": 5,
-            "price": "25.00
+            "price": 25.00
         }
     ]
 }
