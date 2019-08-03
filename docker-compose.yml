@@ -1,0 +1,18 @@
+version: '3.5'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: event-tickets
+    ports:
+      - "3000:80"
+    env_file:
+      - .env
+    environment:
+      HOSTNAME: "0.0.0.0"
+      PORT: 80
+    volumes:
+      - .:/app
+    command: ["yarn", "start:dev"]
