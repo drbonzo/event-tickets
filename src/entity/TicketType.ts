@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
+import { EventEntity } from "./EventEntity";
+import { Ticket } from "./Ticket";
 
 export const SELLING_OPTION_EVEN = "even";
 export const SELLING_OPTION_ALL_TOGETHER = "all_together";
@@ -18,4 +20,9 @@ export class TicketType {
     @Column()
     sellingOption: string;
 
+    @ManyToOne(() => EventEntity, event => event.ticketTypes)
+    event: EventEntity;
+
+    @OneToMany(() => Ticket, ticket => ticket.ticketType)
+    tickets: Ticket[];
 }

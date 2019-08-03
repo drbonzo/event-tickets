@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { TicketType } from "./TicketType";
 
 @Entity()
 export class EventEntity {
@@ -11,4 +12,6 @@ export class EventEntity {
     @Column()
     startDateTime: number; // unix timestamp
 
+    @OneToMany(() => TicketType, ticketType => ticketType.event)
+    ticketTypes: TicketType[];
 }
