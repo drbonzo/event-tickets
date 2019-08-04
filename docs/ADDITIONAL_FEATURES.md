@@ -1,4 +1,4 @@
-# Create Event with Ticket Types and Tickets
+# [DONE] Create Event with Ticket Types and Tickets
 
 This is a simple administration functionality that allows to create Event, and tickets with simple algorithm
 
@@ -47,7 +47,7 @@ This example request will create
 - three `TicketTypes` for that `Event`
 - count of 4, 10 and 5 `Tickets` for appropriate `TicketType`
 
-# Expire a reservation manualy
+# [TODO] Expire a reservation manualy
 
 ## Problems
 

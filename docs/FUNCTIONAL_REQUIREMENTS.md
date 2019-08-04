@@ -13,7 +13,7 @@
             - (...) that will not leave only 1 `available` ticket  of same `TicketType` for the same `Event`
 - Assuming that there is only one selling option assigned for `TicketType`
 
-# Get info about an event
+# [DONE] Get info about an event
 
 ## Problems:
 
@@ -44,7 +44,7 @@
         - `TicketType` (relation N:1)
         - `price`
 
-# Get info about available tickets for event
+# [DONE] Get info about available tickets for event
 
 ## Problems
 
@@ -74,7 +74,7 @@ To achieve this:
     - `status`
     - `TicketType` (relation)
 
-# Reserve tickets
+# [TODO] Reserve tickets
 
 _We can split Reservations from Purchases and Payments - if there is a need to (like tracking objects, statistics, etc)._
 
@@ -117,7 +117,7 @@ _Currently we can handle all cases with simpler solution._
 
 _We could make this complex (if there is a reason to) by introducing `TicketReservation` etc, but current solution is enough to cover use cases_
 
-# Release tickets from expired Purchases
+# [TODO] Release tickets from expired Purchases
 
 ## Problems
 
@@ -133,7 +133,7 @@ _We could make this complex (if there is a reason to) by introducing `TicketRese
         - set `Ticket.status = available`
     - use SQL transations!
 
-# Pay for ticket
+# [TODO] Pay for ticket
 
 ## Problems
 
@@ -183,7 +183,7 @@ Additionaly we could:
 - do not let User pay twice for the same `Purchase`
 - we could track all payment operations in the database, if needed
 
-# Get info about reservation
+# [DONE] Get info about reservation
 
 ## Problems
 
