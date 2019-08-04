@@ -5,10 +5,11 @@ import { DATABASE_CONNECTION } from "./providers/provider-names";
 import { createConnection } from "typeorm";
 import { CreateEventsController } from "./api/v1/admin/create-events.controller";
 import { EventsController } from "./api/v1/events/events.controller";
+import { LoadFixturesController } from "./api/v1/admin/load-fixtures.controller";
 
 @Module({
     imports: [],
-    controllers: [AppController, CreateEventsController, EventsController],
+    controllers: [AppController, CreateEventsController, EventsController, LoadFixturesController],
     providers: [
         AppService,
         {
