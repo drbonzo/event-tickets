@@ -28,3 +28,9 @@ echo '{
     ]
 }' | http POST http://localhost:3000/api/v1/admin/events Content-Type:application/json
 ```
+
+# Get All Events
+
+```
+http GET http://localhost:3000/api/v1/events
+```

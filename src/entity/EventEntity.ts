@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { TicketType } from "./TicketType";
 
+// EventEntity - collided with global `Event` class - this is just fastest workaround, not the best
 @Entity()
 export class EventEntity {
     @PrimaryGeneratedColumn()

@@ -4,10 +4,11 @@ import { AppService } from "./app.service";
 import { DATABASE_CONNECTION } from "./providers/provider-names";
 import { createConnection } from "typeorm";
 import { CreateEventsController } from "./api/v1/admin/create-events.controller";
+import { EventsController } from "./api/v1/events/events.controller";
 
 @Module({
     imports: [],
-    controllers: [AppController, CreateEventsController],
+    controllers: [AppController, CreateEventsController, EventsController],
     providers: [
         AppService,
         {
