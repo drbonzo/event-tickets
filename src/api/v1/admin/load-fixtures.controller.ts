@@ -15,6 +15,12 @@ import {
     TICKET_STATUS_RESERVED,
     TICKET_STATUS_SOLD,
 } from "../../../entity/Ticket";
+import { Customer } from "../../../entity/Customer";
+import {
+    Purchase,
+    PURCHASE_STATUS_PAID,
+    PURCHASE_STATUS_WAITS_FOR_PAYMENT,
+} from "../../../entity/Purchase";
 
 // Simplifiex Date modifiation
 const addNDaysFromNow = (daysCount: number): string => {
@@ -34,8 +40,14 @@ export class LoadFixturesController {
             async (transactionalEntityManager: EntityManager) => {
                 await this.clearDatabase(transactionalEntityManager);
 
+                const customerA = await this.createCustomer(
+                    "Customer A",
+                    transactionalEntityManager,
+                );
+                await this.createCustomer("Customer B", transactionalEntityManager);
+                await this.createCustomer("Customer C", transactionalEntityManager);
                 await this.createPastEvent(transactionalEntityManager);
-                await this.createSoldEvent(transactionalEntityManager);
+                await this.createSoldEvent(customerA, transactionalEntityManager);
                 await this.createReservedEvent(transactionalEntityManager);
                 await this.createMixedEvent(transactionalEntityManager);
                 await this.createMultipleTicketTypeEvent(transactionalEntityManager);
@@ -43,6 +55,17 @@ export class LoadFixturesController {
         );
 
         return "OK";
+    }
+
+    private async createCustomer(
+        customerName: string,
+        entityManager: EntityManager,
+    ): Promise<Customer> {
+        const customer = new Customer();
+        customer.name = customerName;
+        await entityManager.save(customer);
+
+        return customer;
     }
 
     private async createEvent(
@@ -112,6 +135,8 @@ export class LoadFixturesController {
         await transactionalEntityManager.query("DELETE FROM ticket");
         await transactionalEntityManager.query("DELETE FROM ticket_type");
         await transactionalEntityManager.query("DELETE FROM event_entity");
+        await transactionalEntityManager.query("DELETE FROM purchase");
+        await transactionalEntityManager.query("DELETE FROM customer");
         await transactionalEntityManager.query(
             "DELETE FROM sqlite_sequence WHERE name != 'migrations'",
         );
@@ -138,7 +163,10 @@ export class LoadFixturesController {
         );
     }
 
-    private async createSoldEvent(entityManager: EntityManager): Promise<EventEntity> {
+    private async createSoldEvent(
+        customer: Customer,
+        entityManager: EntityManager,
+    ): Promise<EventEntity> {
         const soldEvent = await this.createEvent(
             {
                 event: {
@@ -157,10 +185,27 @@ export class LoadFixturesController {
             entityManager,
         );
 
-        // mark tickets as sold, without connecting to Purchase
+        let totalPriceToPay = 0;
+        for (const ticketType of soldEvent.ticketTypes) {
+            for (const ticket of ticketType.tickets) {
+                totalPriceToPay += ticket.price;
+            }
+        }
+
+        // FIXME use Service to buy tickets
+        const purchase = new Purchase();
+        // purchase.expiresAfter = null;
+        purchase.status = PURCHASE_STATUS_PAID;
+        purchase.customer = customer;
+        purchase.paymentToken = "FOO";
+        purchase.totalPrice = totalPriceToPay;
+        await entityManager.save(purchase);
+
         for (const ticketType of soldEvent.ticketTypes) {
             for (const ticket of ticketType.tickets) {
                 ticket.status = TICKET_STATUS_SOLD;
+                ticket.purchase = purchase;
+                ticket.customer = customer;
                 await entityManager.save(ticket);
             }
         }

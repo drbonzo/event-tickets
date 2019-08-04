@@ -5,7 +5,7 @@ import { Purchase } from "./Purchase";
 @Entity()
 export class Customer {
     @PrimaryGeneratedColumn()
-    id: number | undefined;
+    id: number;
 
     @Column()
     name: string;

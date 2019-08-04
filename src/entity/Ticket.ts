@@ -10,7 +10,7 @@ export const TICKET_STATUS_SOLD = "sold";
 @Entity()
 export class Ticket {
     @PrimaryGeneratedColumn()
-    id: number | undefined;
+    id: number;
 
     @Column()
     number: string;

@@ -6,10 +6,17 @@ import { createConnection } from "typeorm";
 import { CreateEventsController } from "./api/v1/admin/create-events.controller";
 import { EventsController } from "./api/v1/events/events.controller";
 import { LoadFixturesController } from "./api/v1/admin/load-fixtures.controller";
+import { PurchasesController } from "./api/v1/purchases/purchases.controller";
 
 @Module({
     imports: [],
-    controllers: [AppController, CreateEventsController, EventsController, LoadFixturesController],
+    controllers: [
+        AppController,
+        CreateEventsController,
+        EventsController,
+        LoadFixturesController,
+        PurchasesController,
+    ],
     providers: [
         AppService,
         {

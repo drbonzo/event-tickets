@@ -5,7 +5,7 @@ import { TicketType } from "./TicketType";
 @Entity()
 export class EventEntity {
     @PrimaryGeneratedColumn()
-    id: number | undefined;
+    id: number;
 
     @Column()
     name: string;

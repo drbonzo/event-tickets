@@ -9,10 +9,10 @@ export const PURCHASE_STATUS_PAID = "paid";
 @Entity()
 export class Purchase {
     @PrimaryGeneratedColumn()
-    id: number | undefined;
+    id: number;
 
     @Column({ nullable: true })
-    expiresAfter: number; // date as unit timestamp
+    expiresAfter?: number; // date as unit timestamp
 
     @Column()
     status: string;

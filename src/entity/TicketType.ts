@@ -9,7 +9,7 @@ export const SELLING_OPTION_AVOID_ONE = "avoid_one";
 @Entity()
 export class TicketType {
     @PrimaryGeneratedColumn()
-    id: number | undefined;
+    id: number;
 
     @Column()
     name: string;
