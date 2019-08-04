@@ -55,8 +55,8 @@ This example request will create
 
 ## Solutions
 
-- `DELETE /reservations/123/`
-- allows to delete reservation if 15 minutes have passed since it creation
+- `DELETE /purchases/123/`
+- allows to delete unpaid `Purchase` if 15 minutes have passed since it creation
 
 # List of User's reservations
 
