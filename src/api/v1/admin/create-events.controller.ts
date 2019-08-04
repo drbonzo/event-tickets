@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Post } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Inject, Post } from "@nestjs/common";
 import { CreateEventDTO, CreateTicketTypeDTO } from "./dto";
 import { EventEntity } from "../../../entity/EventEntity";
 import { DATABASE_CONNECTION } from "../../../providers/provider-names";
@@ -41,6 +41,9 @@ export class CreateEventsController {
         createTicketTypesDtos: CreateTicketTypeDTO[],
         entityManager: EntityManager,
     ): Promise<TicketType[]> {
+        if (createTicketTypesDtos.length === 0) {
+            throw new BadRequestException("Event must have at least single TicketType");
+        }
         const ticketTypeRepository = entityManager.getRepository(TicketType);
 
         const promises: Array<Promise<TicketType>> = createTicketTypesDtos.map(
@@ -69,6 +72,12 @@ export class CreateEventsController {
         numberOfTicketsToCreate: number,
         entityManager: EntityManager,
     ): Promise<Ticket[]> {
+        if (numberOfTicketsToCreate === 0) {
+            throw new BadRequestException(
+                "You must create at least 1 Ticket for TicketType: " + ticketType.name,
+            );
+        }
+
         const ticketRepository = entityManager.getRepository(Ticket);
 
         const newTicketPromises: Array<Promise<Ticket>> = [];
