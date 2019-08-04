@@ -1,23 +1,35 @@
-import { Controller, Get, Inject } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import { AppService } from "./app.service";
-import { DATABASE_CONNECTION } from "./providers/provider-names";
-import { Connection } from "typeorm";
-import { EventEntity } from "./entity/EventEntity";
 
 @Controller()
 export class AppController {
-    constructor(
-        private readonly appService: AppService,
-        @Inject(DATABASE_CONNECTION) private databaseConnection: Connection,
-    ) {}
+    constructor(private readonly appService: AppService) {
+    }
 
     @Get()
     async getHello(): Promise<string> {
-        // tslint:disable-next-line:no-console
-        console.log("Loading events from the database...");
-        const events = await this.databaseConnection.manager.find(EventEntity);
-        // tslint:disable-next-line:no-console
-        console.log("Loaded events: ", events);
+        return `<html>
+<body>
+<h1>Ticket for Events</h1>
+
+<h2>Customer section</h2>
+<ul>
+	<li>
+		<code>GET http://localhost:3000/api/v1/events</code>
+	</li>
+	<li>
+		<code>GET http://localhost:3000/api/v1/events/{id}</code>
+	</li>
+</ul>
+
+<h2>Administration</h2>
+<ul>
+	<li>
+		<code>POST http://localhost:3000/api/v1/admin/events</code>
+	</li>
+</ul>
+</body>
+</html>`;
 
         return this.appService.getHello();
     }
