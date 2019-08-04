@@ -13,6 +13,6 @@ export class EventEntity {
     @Column()
     startDateTime: number; // unix timestamp
 
-    @OneToMany(() => TicketType, ticketType => ticketType.event)
+    @OneToMany(() => TicketType, ticketType => ticketType.event, { cascade: true })
     ticketTypes: TicketType[];
 }

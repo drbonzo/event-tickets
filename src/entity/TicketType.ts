@@ -23,6 +23,6 @@ export class TicketType {
     @ManyToOne(() => EventEntity, event => event.ticketTypes)
     event: EventEntity;
 
-    @OneToMany(() => Ticket, ticket => ticket.ticketType)
+    @OneToMany(() => Ticket, ticket => ticket.ticketType, { cascade: true })
     tickets: Ticket[];
 }
