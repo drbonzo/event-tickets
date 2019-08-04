@@ -17,3 +17,23 @@ Run migrations
 ```
 yarn typeorm migration:run
 ```
+
+
+## Installation
+
+```
+yarn install
+yarn typeorm migration:run
+```
+
+## Running
+
+```
+yarn start:dev
+```
+
+Load fixtures:
+
+```
+http POST http://localhost:3000/api/v1/admin/fixtures
+```
