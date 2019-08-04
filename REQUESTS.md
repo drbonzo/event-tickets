@@ -50,3 +50,20 @@ http GET http://localhost:3000/api/v1/events/3
 http GET http://localhost:3000/api/v1/events/4
 http GET http://localhost:3000/api/v1/events/5
 ```
+
+# Reserve tickets
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=43 \
+  ticketIds=48 \
+  ticketIds=58 \
+  customerId=2
+```
+
+# View reservation/purchase
+
+```
+http GET http://localhost:3000/api/v1/purchases/2
+```

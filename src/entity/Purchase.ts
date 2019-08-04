@@ -23,7 +23,7 @@ export class Purchase {
     @Column({ nullable: true })
     paymentToken: string;
 
-    @OneToMany(() => Ticket, ticket => ticket.purchase)
+    @OneToMany(() => Ticket, ticket => ticket.purchase, { cascade: true })
     tickets: Ticket[];
 
     @ManyToOne(() => Customer, customer => customer.purchases, { nullable: true })

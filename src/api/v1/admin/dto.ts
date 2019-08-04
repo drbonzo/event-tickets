@@ -1,5 +1,7 @@
 import { DateTimeStringISO8601 } from "../../../common-types";
+// import { ArrayNotEmpty, IsArray, IsNotEmpty } from "class-validator";
 
+// FIXME add validation with class-validator, and convert to class
 export interface CreateTicketTypeDTO {
     name: string;
     sellingOption: string;
