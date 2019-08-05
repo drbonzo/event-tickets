@@ -83,6 +83,27 @@ http --form POST http://localhost:3000/api/v1/purchases \
   customerId=2
 ```
 
+## Reserve available tickets - but failing at sellingOptions
+
+- even: 44, 45, 46
+- all_together: 50, 51, 52, 53
+- avoid_one: 58, 59
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=44 \
+  ticketIds=45 \
+  ticketIds=46 \
+  ticketIds=50 \
+  ticketIds=51 \
+  ticketIds=52 \
+  ticketIds=53 \
+  ticketIds=58 \
+  ticketIds=59 \
+  customerId=2
+```
+
+
 # View reservation/purchase
 
 ```

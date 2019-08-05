@@ -307,7 +307,7 @@ export class LoadFixturesController {
                     {
                         name: "Type #5.3",
                         price: 25,
-                        numberOfTickets: 20,
+                        numberOfTickets: 3,
                         sellingOption: SELLING_OPTION_AVOID_ONE,
                     },
                 ],
