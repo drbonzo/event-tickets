@@ -3,6 +3,7 @@ import { AppService } from "./app.service";
 
 @Controller()
 export class AppController {
+    // @ts-ignore
     constructor(private readonly appService: AppService) {}
 
     @Get()
@@ -18,6 +19,9 @@ export class AppController {
 	</li>
 	<li>
 		<code>GET http://localhost:3000/api/v1/events/{id}</code>
+	</li>
+	<li>
+		<code>GET http://localhost:3000/api/v1/purchases/{id}</code>
 	</li>
 </ul>
 

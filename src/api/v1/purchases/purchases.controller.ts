@@ -11,8 +11,8 @@ import {
 } from "@nestjs/common";
 import { DATABASE_CONNECTION } from "../../../providers/provider-names";
 import { Connection, EntityManager } from "typeorm";
-import { Purchase, PURCHASE_STATUS_WAITS_FOR_PAYMENT } from "../../../entity/Purchase";
-import { Ticket, TICKET_STATUS_AVAILABLE, TICKET_STATUS_RESERVED } from "../../../entity/Ticket";
+import { Purchase } from "../../../entity/Purchase";
+import { Ticket, TICKET_STATUS_AVAILABLE } from "../../../entity/Ticket";
 import { CreatePurchaseDTO } from "./dto";
 import { Customer } from "../../../entity/Customer";
 import { EventEntity } from "../../../entity/EventEntity";
@@ -22,27 +22,16 @@ import {
     SELLING_OPTION_EVEN,
     TicketType,
 } from "../../../entity/TicketType";
-
-const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
-
-interface PurchaseDetails {
-    purchase: {
-        id: number;
-        status: string;
-        totalPrice: number;
-    };
-    ticketData: Array<{
-        id: number;
-        number: string;
-        price: number;
-        typeName: string;
-        eventName: string;
-    }>;
-}
+import { CustomerService } from "../customer/customer.service";
+import { PurchaseDetails, PurchaseService } from "../purchase/purchase.service";
 
 @Controller("/api/v1/purchases")
 export class PurchasesController {
-    constructor(@Inject(DATABASE_CONNECTION) private databaseConnection: Connection) {}
+    constructor(
+        @Inject(DATABASE_CONNECTION) private readonly databaseConnection: Connection,
+        private readonly customerService: CustomerService,
+        private readonly purchaseService: PurchaseService,
+    ) {}
 
     @Post("/")
     public async reserveTickets(
@@ -51,28 +40,22 @@ export class PurchasesController {
         const purchase: Purchase = await this.databaseConnection.transaction(
             "SERIALIZABLE",
             async (transactionalEntityManager: EntityManager) => {
-                const newPurchase = new Purchase();
-                newPurchase.tickets = [];
-
-                // FIXME handle duplicated ticket ids?
-
                 // FIXME add authorization for this
                 const customer:
                     | Customer
-                    | undefined = await transactionalEntityManager
-                    .getRepository(Customer)
-                    .findOne(createPurchaseDto.customerId);
+                    | undefined = await this.customerService.findCustomerUsingEntityManager(
+                    createPurchaseDto.customerId,
+                    transactionalEntityManager,
+                );
 
                 if (customer == null) {
                     throw new BadRequestException("Customer does not exist");
                 }
 
-                newPurchase.customer = customer;
-                newPurchase.expiresAfter = Date.now() + EXPIRE_PURCHASE_AFTER_SECONDS; // FIXME DRY expiresAt
-                newPurchase.status = PURCHASE_STATUS_WAITS_FOR_PAYMENT;
-                newPurchase.totalPrice = 0;
+                const newPurchase = this.purchaseService.buildNewPurchase(customer);
 
                 // Find tickets
+                // FIXME handle duplicated ticket ids?
                 const ticketIds: number[] = Array.isArray(createPurchaseDto.ticketIds)
                     ? createPurchaseDto.ticketIds
                     : [createPurchaseDto.ticketIds];
@@ -86,63 +69,32 @@ export class PurchasesController {
                     transactionalEntityManager,
                 );
 
-                // Connect them with Purchase (Reservation)
-                let totalPriceToPay = 0;
-                ticketsToReserve.forEach(ticket => {
-                    totalPriceToPay += ticket.price;
-                    ticket.status = TICKET_STATUS_RESERVED;
-                });
+                this.purchaseService.addTicketsToPurchase(newPurchase, ticketsToReserve);
 
-                newPurchase.tickets = ticketsToReserve;
-                newPurchase.totalPrice = totalPriceToPay;
-
-                await transactionalEntityManager.save(newPurchase);
+                await this.purchaseService.savePurchaseWithEntityManager(
+                    newPurchase,
+                    transactionalEntityManager,
+                );
 
                 return newPurchase;
             },
         );
 
-        return this.buildPurchaseDetails(purchase);
+        return this.purchaseService.buildPurchaseDetails(purchase);
     }
 
     @Get("/:id")
     public async getPurchaseStatus(@Param("id") id: number): Promise<PurchaseDetails> {
-        const purchaseRepository = this.databaseConnection.getRepository(Purchase);
-        // FIXME this could be optimized:
-        // TODO for Sorting - use QueryBuilder
-        const purchase: Purchase | undefined = await purchaseRepository.findOne(id, {
-            relations: ["tickets", "tickets.ticketType", "tickets.ticketType.event"],
-        });
+        const purchase = await this.purchaseService.findPurchase(id);
 
         if (purchase === undefined) {
             throw new NotFoundException(`Purchase not found`);
         }
 
-        return this.buildPurchaseDetails(purchase);
+        return this.purchaseService.buildPurchaseDetails(purchase);
     }
 
-    private buildPurchaseDetails(purchase: Purchase): PurchaseDetails {
-        // FIXME DRY
-        const purchaseDetails: PurchaseDetails = {
-            purchase: {
-                id: purchase.id,
-                status: purchase.status,
-                totalPrice: purchase.totalPrice,
-            },
-            ticketData: purchase.tickets.map((ticket: Ticket) => {
-                return {
-                    id: ticket.id,
-                    number: ticket.number,
-                    price: ticket.price,
-                    typeName: ticket.ticketType.name,
-                    eventName: ticket.ticketType.event.name,
-                };
-            }),
-        };
-
-        return purchaseDetails;
-    }
-
+    // FIXME REFACTORING extract to service
     private async findTicketsForReservation(
         entityManager: EntityManager,
         ticketIds: number[],
@@ -196,6 +148,7 @@ export class PurchasesController {
         return tickets;
     }
 
+    // FIXME REFACTORING extract to service
     private async checkSellingOptionsForTickets(
         ticketsToReserve: Ticket[],
         entityManager: EntityManager,
@@ -219,7 +172,7 @@ export class PurchasesController {
                 const tickets = ticketsGroupedByType.get(ticketType.id) || [];
                 // FIXME extract to validators
                 if (ticketType.sellingOption === SELLING_OPTION_EVEN) {
-                    await this.validateSellingOptionEven(ticketType, tickets, entityManager);
+                    await this.validateSellingOptionEven(ticketType, tickets);
                 } else if (ticketType.sellingOption === SELLING_OPTION_ALL_TOGETHER) {
                     await this.validateSellingOptionAllTogether(ticketType, tickets, entityManager);
                 } else if (ticketType.sellingOption === SELLING_OPTION_AVOID_ONE) {
@@ -231,10 +184,10 @@ export class PurchasesController {
         }
     }
 
+    // FIXME REFACTORING extract to service
     private async validateSellingOptionEven(
         ticketType: TicketType,
         tickets: Ticket[],
-        entityManager: EntityManager, // FIXME remove?
     ): Promise<void> {
         const reservingEvenTickets = tickets.length % 2 === 0;
         if (!reservingEvenTickets) {
@@ -247,6 +200,7 @@ export class PurchasesController {
     /**
      * Number of reserved Tickets must be equal to all available Tickets
      */
+    // FIXME REFACTORING extract to service
     private async validateSellingOptionAllTogether(
         ticketType: TicketType,
         tickets: Ticket[],
@@ -268,6 +222,7 @@ export class PurchasesController {
      * - so you can leave 2, 3, 4, ... available Tickets (> 1)
      * - or buy all available (=== 0)
      */
+    // FIXME REFACTORING extract to service
     private async validateSellingOptionAvoidOne(
         ticketType: TicketType,
         tickets: Ticket[],
@@ -285,6 +240,7 @@ export class PurchasesController {
         }
     }
 
+    // FIXME REFACTORING extract to service
     private async countAvailableTicketsForTicketType(
         ticketType: TicketType,
         entityManager: EntityManager,

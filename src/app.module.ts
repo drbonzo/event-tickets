@@ -8,6 +8,9 @@ import { EventsController } from "./api/v1/events/events.controller";
 import { LoadFixturesController } from "./api/v1/admin/load-fixtures.controller";
 import { PurchasesController } from "./api/v1/purchases/purchases.controller";
 import { EventsService } from "./api/v1/events/events.service";
+import { TicketService } from "./api/v1/ticket/ticket.service";
+import { CustomerService } from "./api/v1/customer/customer.service";
+import { PurchaseService } from "./api/v1/purchase/purchase.service";
 
 @Module({
     imports: [],
@@ -29,6 +32,9 @@ import { EventsService } from "./api/v1/events/events.service";
             },
         },
         EventsService,
+        TicketService,
+        CustomerService,
+        PurchaseService,
     ],
 })
 export class AppModule {}
