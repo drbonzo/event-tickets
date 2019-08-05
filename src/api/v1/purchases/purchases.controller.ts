@@ -4,6 +4,7 @@ import {
     Controller,
     Get,
     Inject,
+    InternalServerErrorException,
     NotFoundException,
     Param,
     Post,
@@ -14,6 +15,7 @@ import { Purchase, PURCHASE_STATUS_WAITS_FOR_PAYMENT } from "../../../entity/Pur
 import { Ticket, TICKET_STATUS_AVAILABLE, TICKET_STATUS_RESERVED } from "../../../entity/Ticket";
 import { CreatePurchaseDTO } from "./dto";
 import { Customer } from "../../../entity/Customer";
+import { EventEntity } from "../../../entity/EventEntity";
 
 const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
 
@@ -127,7 +129,10 @@ export class PurchasesController {
         return purchaseDetails;
     }
 
-    private async findTicketsForReservation(entityManager: EntityManager, ticketIds: number[]) {
+    private async findTicketsForReservation(
+        entityManager: EntityManager,
+        ticketIds: number[],
+    ): Promise<Ticket[]> {
         if (ticketIds.length === 0) {
             throw new BadRequestException("You must reserve at least 1 ticket");
         }
@@ -148,13 +153,29 @@ export class PurchasesController {
         }
 
         // Tickets must be from the same Event
-        const eventTypeIdsSet: Set<number> = new Set();
+        let eventId: number | undefined;
         tickets.forEach(ticket => {
-            eventTypeIdsSet.add(ticket.ticketType.event.id);
+            if (eventId === undefined) {
+                eventId = ticket.ticketType.event.id;
+            }
+
+            if (eventId !== ticket.ticketType.event.id) {
+                throw new BadRequestException("Tickets must be from the same Event");
+            }
         });
 
-        if (eventTypeIdsSet.size !== 1) {
-            throw new BadRequestException("Tickets must be from the same Event");
+        // Check if Event starts in the future
+        if (eventId) {
+            const event = await this.databaseConnection.getRepository(EventEntity).findOne(eventId);
+            if (!event) {
+                throw new InternalServerErrorException("Event not found? id=" + eventId);
+            }
+
+            if (!event.startsInFutureFrom(Date.now())) {
+                throw new BadRequestException("Cannot reserve Tickets for past Events");
+            }
+        } else {
+            throw new InternalServerErrorException("eventId should not be undefined");
         }
 
         // FIXME add additional validations for reservation

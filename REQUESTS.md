@@ -53,6 +53,8 @@ http GET http://localhost:3000/api/v1/events/5
 
 # Reserve tickets
 
+## Reserve available tickets
+
 ```
 http --form POST http://localhost:3000/api/v1/purchases \
   Content-Type:application/x-www-form-urlencoded \
@@ -62,8 +64,28 @@ http --form POST http://localhost:3000/api/v1/purchases \
   customerId=2
 ```
 
+## Try to reserve sold or reserved tickets
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=31 \
+  ticketIds=32 \
+  customerId=2
+```
+
+## Try to reserve Tickets from past Event
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=1 \
+  customerId=2
+```
+
 # View reservation/purchase
 
 ```
 http GET http://localhost:3000/api/v1/purchases/2
 ```
+

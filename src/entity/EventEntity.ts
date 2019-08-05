@@ -15,4 +15,9 @@ export class EventEntity {
 
     @OneToMany(() => TicketType, ticketType => ticketType.event, { cascade: true })
     ticketTypes: TicketType[];
+
+    startsInFutureFrom(fromDateTime: number) {
+        // FIXME should add 15 minutes buffer - so we make sure that we reserve active Event
+        return this.startDateTime > fromDateTime;
+    }
 }
