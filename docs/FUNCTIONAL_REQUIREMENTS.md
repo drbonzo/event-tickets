@@ -74,7 +74,7 @@ To achieve this:
     - `status`
     - `TicketType` (relation)
 
-# [TODO] Reserve tickets
+# [DONE] Reserve tickets
 
 _We can split Reservations from Purchases and Payments - if there is a need to (like tracking objects, statistics, etc)._
 
