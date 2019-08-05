@@ -16,6 +16,12 @@ import { Ticket, TICKET_STATUS_AVAILABLE, TICKET_STATUS_RESERVED } from "../../.
 import { CreatePurchaseDTO } from "./dto";
 import { Customer } from "../../../entity/Customer";
 import { EventEntity } from "../../../entity/EventEntity";
+import {
+    SELLING_OPTION_ALL_TOGETHER,
+    SELLING_OPTION_AVOID_ONE,
+    SELLING_OPTION_EVEN,
+    TicketType,
+} from "../../../entity/TicketType";
 
 const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
 
@@ -48,6 +54,8 @@ export class PurchasesController {
                 const newPurchase = new Purchase();
                 newPurchase.tickets = [];
 
+                // FIXME handle duplicated ticket ids?
+
                 // FIXME add authorization for this
                 const customer:
                     | Customer
@@ -65,11 +73,17 @@ export class PurchasesController {
                 newPurchase.totalPrice = 0;
 
                 // Find tickets
+                const ticketIds: number[] = Array.isArray(createPurchaseDto.ticketIds)
+                    ? createPurchaseDto.ticketIds
+                    : [createPurchaseDto.ticketIds];
                 const ticketsToReserve = await this.findTicketsForReservation(
                     transactionalEntityManager,
-                    Array.isArray(createPurchaseDto.ticketIds)
-                        ? createPurchaseDto.ticketIds
-                        : [createPurchaseDto.ticketIds],
+                    ticketIds,
+                );
+
+                await this.checkSellingOptionsForTickets(
+                    ticketsToReserve,
+                    transactionalEntityManager,
                 );
 
                 // Connect them with Purchase (Reservation)
@@ -180,5 +194,111 @@ export class PurchasesController {
 
         // FIXME add additional validations for reservation
         return tickets;
+    }
+
+    private async checkSellingOptionsForTickets(
+        ticketsToReserve: Ticket[],
+        entityManager: EntityManager,
+    ): Promise<void> {
+        const ticketTypes: Map<number, TicketType> = new Map();
+        const ticketsGroupedByType: Map<number, Ticket[]> = new Map();
+
+        ticketsToReserve.forEach(ticket => {
+            const ticketTypeId = ticket.ticketType.id;
+            const tickets = ticketsGroupedByType.get(ticketTypeId) || [];
+            tickets.push(ticket);
+            ticketsGroupedByType.set(ticketTypeId, tickets);
+
+            ticketTypes.set(ticketTypeId, ticket.ticketType);
+        });
+
+        // FIXME return error messages for each error
+
+        try {
+            for (const ticketType of Array.from(ticketTypes.values())) {
+                const tickets = ticketsGroupedByType.get(ticketType.id) || [];
+                // FIXME extract to validators
+                if (ticketType.sellingOption === SELLING_OPTION_EVEN) {
+                    await this.validateSellingOptionEven(ticketType, tickets, entityManager);
+                } else if (ticketType.sellingOption === SELLING_OPTION_ALL_TOGETHER) {
+                    await this.validateSellingOptionAllTogether(ticketType, tickets, entityManager);
+                } else if (ticketType.sellingOption === SELLING_OPTION_AVOID_ONE) {
+                    await this.validateSellingOptionAvoidOne(ticketType, tickets, entityManager);
+                }
+            }
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    private async validateSellingOptionEven(
+        ticketType: TicketType,
+        tickets: Ticket[],
+        entityManager: EntityManager, // FIXME remove?
+    ): Promise<void> {
+        const reservingEvenTickets = tickets.length % 2 === 0;
+        if (!reservingEvenTickets) {
+            throw new BadRequestException(
+                "You must reserve even number of tickets of type: " + ticketType.name,
+            );
+        }
+    }
+
+    /**
+     * Number of reserved Tickets must be equal to all available Tickets
+     */
+    private async validateSellingOptionAllTogether(
+        ticketType: TicketType,
+        tickets: Ticket[],
+        entityManager: EntityManager,
+    ) {
+        const availableTicketsCount = await this.countAvailableTicketsForTicketType(
+            ticketType,
+            entityManager,
+        );
+        const notAllTicketsReserved = tickets.length !== availableTicketsCount;
+        if (notAllTicketsReserved) {
+            throw new BadRequestException("You must but ALL tickets of type: " + ticketType.name);
+        }
+    }
+
+    /**
+     * Number available tickets minus number of reserved Tickets must be !== 1
+     *
+     * - so you can leave 2, 3, 4, ... available Tickets (> 1)
+     * - or buy all available (=== 0)
+     */
+    private async validateSellingOptionAvoidOne(
+        ticketType: TicketType,
+        tickets: Ticket[],
+        entityManager: EntityManager,
+    ) {
+        const availableTicketsCount = await this.countAvailableTicketsForTicketType(
+            ticketType,
+            entityManager,
+        );
+        const singleTicketRemains = availableTicketsCount - tickets.length === 1;
+        if (singleTicketRemains) {
+            throw new BadRequestException(
+                "You must not leave 1 ticket left of type: " + ticketType.name,
+            );
+        }
+    }
+
+    private async countAvailableTicketsForTicketType(
+        ticketType: TicketType,
+        entityManager: EntityManager,
+    ): Promise<number> {
+        const result: Array<{
+            availableTicketCount: number;
+        }> = await entityManager.getRepository(Ticket).query(
+            `SELECT COUNT(*) AS availableTicketCount
+                     FROM ticket
+                     WHERE ticket.ticketTypeId = ?
+                       AND ticket.status = ? `,
+            [ticketType.id, TICKET_STATUS_AVAILABLE],
+        );
+
+        return result[0].availableTicketCount;
     }
 }
