@@ -14,4 +14,9 @@ async function bootstrap() {
     // tslint:disable-next-line:no-console
     console.log(`Listening on ${HOSTNAME}:${PORT}`);
 }
-bootstrap();
+
+bootstrap().catch(e => {
+    // tslint:disable-next-line:no-console
+    console.error(e);
+    process.exit(1);
+});
