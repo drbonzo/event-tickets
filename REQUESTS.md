@@ -83,11 +83,12 @@ http --form POST http://localhost:3000/api/v1/purchases \
   customerId=2
 ```
 
-## Reserve available tickets - but failing at sellingOptions
+## Reserve Event 5 - available tickets - but failing at sellingOptions
 
 - even: 44, 45, 46
 - all_together: 50, 51, 52, 53
 - avoid_one: 58, 59
+
 ```
 http --form POST http://localhost:3000/api/v1/purchases \
   Content-Type:application/x-www-form-urlencoded \
@@ -100,6 +101,77 @@ http --form POST http://localhost:3000/api/v1/purchases \
   ticketIds=53 \
   ticketIds=58 \
   ticketIds=59 \
+  customerId=2
+```
+
+### Reserve Event 5 - even
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=44 \
+  ticketIds=45 \
+  ticketIds=46 \
+  customerId=2
+```
+
+### Reserve Event 5 - all_together
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=50 \
+  ticketIds=51 \
+  ticketIds=52 \
+  ticketIds=53 \
+  customerId=2
+```
+
+All tickets = 
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+
+### Reserve Event 5 - avoid_one
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=58 \
+  ticketIds=59 \
+  customerId=2
+```
+
+58, 59, 60
+
+
+### Reserve without errors
+
+```
+http --form POST http://localhost:3000/api/v1/purchases \
+  Content-Type:application/x-www-form-urlencoded \
+  ticketIds=45 \
+  ticketIds=46 \
+  ticketIds=48 \
+  ticketIds=49 \
+  ticketIds=50 \
+  ticketIds=51 \
+  ticketIds=52 \
+  ticketIds=53 \
+  ticketIds=54 \
+  ticketIds=55 \
+  ticketIds=56 \
+  ticketIds=57 \
+  ticketIds=58 \
+  ticketIds=59 \
+  ticketIds=60 \
   customerId=2
 ```
 
