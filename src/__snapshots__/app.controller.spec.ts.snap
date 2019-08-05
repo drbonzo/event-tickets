@@ -1,13 +1,7 @@
-import { Controller, Get } from "@nestjs/common";
-import { AppService } from "./app.service";
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
-@Controller()
-export class AppController {
-    constructor(private readonly appService: AppService) {}
-
-    @Get()
-    async getHello(): Promise<string> {
-        return `<html>
+exports[`AppController root should return "Hello World!" 1`] = `
+"<html>
 <body>
 <h1>Ticket for Events</h1>
 
@@ -28,6 +22,5 @@ export class AppController {
 	</li>
 </ul>
 </body>
-</html>`;
-    }
-}
+</html>"
+`;
