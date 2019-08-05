@@ -65,7 +65,9 @@ export class PurchasesController {
                 // Find tickets
                 const ticketsToReserve = await this.findTicketsForReservation(
                     transactionalEntityManager,
-                    createPurchaseDto.ticketIds,
+                    Array.isArray(createPurchaseDto.ticketIds)
+                        ? createPurchaseDto.ticketIds
+                        : [createPurchaseDto.ticketIds],
                 );
 
                 // Connect them with Purchase (Reservation)

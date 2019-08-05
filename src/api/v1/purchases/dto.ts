@@ -4,7 +4,6 @@ export class CreatePurchaseDTO {
     @IsNotEmpty()
     customerId: number;
 
-    @IsArray()
-    @ArrayNotEmpty()
-    ticketIds: number[];
+    @IsNotEmpty()
+    ticketIds: number[] | number;
 }
