@@ -4,7 +4,7 @@ import { EntityManager } from "typeorm";
 
 @Injectable()
 export class CustomerService {
-    async findCustomerUsingEntityManager(
+    async findCustomer(
         customerId: number,
         entityManager: EntityManager,
     ): Promise<Customer | undefined> {

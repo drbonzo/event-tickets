@@ -32,9 +32,7 @@ export class PurchasesController {
             "SERIALIZABLE",
             async (transactionalEntityManager: EntityManager) => {
                 // FIXME add authorization for this
-                const customer:
-                    | Customer
-                    | undefined = await this.customerService.findCustomerUsingEntityManager(
+                const customer: Customer | undefined = await this.customerService.findCustomer(
                     createPurchaseDto.customerId,
                     transactionalEntityManager,
                 );
@@ -51,7 +49,7 @@ export class PurchasesController {
                     throw new BadRequestException("You must reserve at least 1 ticket");
                 }
 
-                return await this.purchaseService.reserveTicketsWithEntityManager(
+                return await this.purchaseService.reserveTickets(
                     customer,
                     ticketIds,
                     transactionalEntityManager,

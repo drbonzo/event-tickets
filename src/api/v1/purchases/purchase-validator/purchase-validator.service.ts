@@ -11,7 +11,7 @@ import { EventEntity } from "../../../../entity/EventEntity";
 
 @Injectable()
 export class PurchaseValidatorService {
-    public async validateTicketsForNewReservationWithEntityManager(
+    public async validateTicketsForNewReservation(
         tickets: Ticket[],
         requestedTickedIds: number[],
         eventIdsFromTickets: number[],

@@ -32,28 +32,6 @@ export class PurchaseService {
         private readonly ticketService: TicketService,
     ) {}
 
-    buildNewPurchase(customer: Customer): Purchase {
-        const purchase = new Purchase();
-        purchase.tickets = [];
-        purchase.customer = customer;
-        purchase.expiresAfter = Date.now() + EXPIRE_PURCHASE_AFTER_SECONDS; // FIXME DRY expiresAt
-        purchase.status = PURCHASE_STATUS_WAITS_FOR_PAYMENT;
-        purchase.totalPrice = 0;
-        return purchase;
-    }
-
-    addTicketsToPurchase(purchase: Purchase, ticketsToReserve: Ticket[]) {
-        // Connect them with Purchase (Reservation)
-        let totalPriceToPay = 0;
-        ticketsToReserve.forEach(ticket => {
-            totalPriceToPay += ticket.price;
-            ticket.status = TICKET_STATUS_RESERVED;
-        });
-
-        purchase.tickets = ticketsToReserve;
-        purchase.totalPrice = totalPriceToPay;
-    }
-
     async findPurchase(id: number): Promise<Purchase | undefined> {
         const purchaseRepository = this.databaseConnection.getRepository(Purchase);
         // FIXME this could be optimized:
@@ -86,7 +64,7 @@ export class PurchaseService {
         return purchaseDetails;
     }
 
-    public async reserveTicketsWithEntityManager(
+    public async reserveTickets(
         customer: Customer,
         ticketIds: number[],
         entityManager: EntityManager,
@@ -94,16 +72,13 @@ export class PurchaseService {
         const newPurchase = this.buildNewPurchase(customer);
 
         // Find tickets
-        const ticketsToReserve = await this.ticketService.findTicketsWithEntityManager(
-            ticketIds,
-            entityManager,
-        );
+        const ticketsToReserve = await this.ticketService.findTickets(ticketIds, entityManager);
 
         const eventIdsFromTickets: number[] = ticketsToReserve.map(ticket => {
             return ticket.ticketType.event.id;
         });
 
-        await this.purchaseValidatorService.validateTicketsForNewReservationWithEntityManager(
+        await this.purchaseValidatorService.validateTicketsForNewReservation(
             ticketsToReserve,
             ticketIds,
             eventIdsFromTickets,
@@ -115,5 +90,27 @@ export class PurchaseService {
         await entityManager.save(newPurchase);
 
         return newPurchase;
+    }
+
+    private buildNewPurchase(customer: Customer): Purchase {
+        const purchase = new Purchase();
+        purchase.tickets = [];
+        purchase.customer = customer;
+        purchase.expiresAfter = Date.now() + EXPIRE_PURCHASE_AFTER_SECONDS; // FIXME DRY expiresAt
+        purchase.status = PURCHASE_STATUS_WAITS_FOR_PAYMENT;
+        purchase.totalPrice = 0;
+        return purchase;
+    }
+
+    private addTicketsToPurchase(purchase: Purchase, ticketsToReserve: Ticket[]) {
+        // Connect them with Purchase (Reservation)
+        let totalPriceToPay = 0;
+        ticketsToReserve.forEach(ticket => {
+            totalPriceToPay += ticket.price;
+            ticket.status = TICKET_STATUS_RESERVED;
+        });
+
+        purchase.tickets = ticketsToReserve;
+        purchase.totalPrice = totalPriceToPay;
     }
 }

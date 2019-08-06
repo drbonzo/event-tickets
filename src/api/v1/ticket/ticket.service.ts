@@ -4,10 +4,7 @@ import { Ticket, TICKET_STATUS_AVAILABLE } from "../../../entity/Ticket";
 
 @Injectable()
 export class TicketService {
-    async findTicketsWithEntityManager(
-        ticketIds: number[],
-        entityManager: EntityManager,
-    ): Promise<Ticket[]> {
+    async findTickets(ticketIds: number[], entityManager: EntityManager): Promise<Ticket[]> {
         const tickets: Ticket[] = await entityManager
             .createQueryBuilder(Ticket, "ticket")
             .where("ticket.id IN (:...ids)", { ids: ticketIds })
