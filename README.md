@@ -37,9 +37,24 @@ yarn typeorm migration:run
 
 ## Running
 
+### Running via Docker
+
+```
+docker-compose up
+```
+
+Then open [http://localhost:3000](http://localhost:3000)
+
+### Running locally
+
 ```
 yarn start:dev
 ```
+
+Then open [http://localhost:3000](http://localhost:3000)
+
+
+### Load fixtures
 
 Load fixtures (uses [HTTPie](https://httpie.org/))
 
