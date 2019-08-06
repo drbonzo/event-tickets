@@ -4,6 +4,8 @@ import { Customer } from "../../../entity/Customer";
 import { Ticket, TICKET_STATUS_RESERVED } from "../../../entity/Ticket";
 import { Connection, EntityManager } from "typeorm";
 import { DATABASE_CONNECTION } from "../../../providers/provider-names";
+import { PurchaseValidatorService } from "../purchases/purchase-validator/purchase-validator.service";
+import { TicketService } from "../ticket/ticket.service";
 
 const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
 
@@ -24,7 +26,11 @@ export interface PurchaseDetails {
 
 @Injectable()
 export class PurchaseService {
-    constructor(@Inject(DATABASE_CONNECTION) private databaseConnection: Connection) {}
+    constructor(
+        @Inject(DATABASE_CONNECTION) private readonly databaseConnection: Connection,
+        private readonly purchaseValidatorService: PurchaseValidatorService,
+        private readonly ticketService: TicketService,
+    ) {}
 
     buildNewPurchase(customer: Customer): Purchase {
         const purchase = new Purchase();
@@ -48,10 +54,6 @@ export class PurchaseService {
         purchase.totalPrice = totalPriceToPay;
     }
 
-    async savePurchaseWithEntityManager(purchase: Purchase, entityManager: EntityManager) {
-        await entityManager.save(purchase);
-    }
-
     async findPurchase(id: number): Promise<Purchase | undefined> {
         const purchaseRepository = this.databaseConnection.getRepository(Purchase);
         // FIXME this could be optimized:
@@ -64,7 +66,6 @@ export class PurchaseService {
     }
 
     public buildPurchaseDetails(purchase: Purchase): PurchaseDetails {
-        // FIXME DRY
         const purchaseDetails: PurchaseDetails = {
             purchase: {
                 id: purchase.id,
@@ -83,5 +84,36 @@ export class PurchaseService {
         };
 
         return purchaseDetails;
+    }
+
+    public async reserveTicketsWithEntityManager(
+        customer: Customer,
+        ticketIds: number[],
+        entityManager: EntityManager,
+    ): Promise<Purchase> {
+        const newPurchase = this.buildNewPurchase(customer);
+
+        // Find tickets
+        const ticketsToReserve = await this.ticketService.findTicketsWithEntityManager(
+            ticketIds,
+            entityManager,
+        );
+
+        const eventIdsFromTickets: number[] = ticketsToReserve.map(ticket => {
+            return ticket.ticketType.event.id;
+        });
+
+        await this.purchaseValidatorService.validateTicketsForNewReservationWithEntityManager(
+            ticketsToReserve,
+            ticketIds,
+            eventIdsFromTickets,
+            entityManager,
+        );
+
+        this.addTicketsToPurchase(newPurchase, ticketsToReserve);
+
+        await entityManager.save(newPurchase);
+
+        return newPurchase;
     }
 }

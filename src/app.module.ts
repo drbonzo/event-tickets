@@ -11,6 +11,7 @@ import { EventsService } from "./api/v1/events/events.service";
 import { TicketService } from "./api/v1/ticket/ticket.service";
 import { CustomerService } from "./api/v1/customer/customer.service";
 import { PurchaseService } from "./api/v1/purchase/purchase.service";
+import { PurchaseValidatorService } from "./api/v1/purchases/purchase-validator/purchase-validator.service";
 
 @Module({
     imports: [],
@@ -35,6 +36,7 @@ import { PurchaseService } from "./api/v1/purchase/purchase.service";
         TicketService,
         CustomerService,
         PurchaseService,
+        PurchaseValidatorService,
     ],
 })
 export class AppModule {}
