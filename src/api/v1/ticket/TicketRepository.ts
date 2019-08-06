@@ -1,4 +1,4 @@
-import { AbstractRepository } from "typeorm";
+import { AbstractRepository, EntityRepository } from "typeorm";
 import {
     Ticket,
     TICKET_STATUS_AVAILABLE,
@@ -14,7 +14,7 @@ export interface TicketCountsGroupedByTicketType {
     reservedTicketCount: number;
     soldTicketCount: number;
 }
-
+@EntityRepository(Ticket)
 export class TicketRepository extends AbstractRepository<Ticket> {
     async save(newTicket: Ticket): Promise<Ticket> {
         return await this.repository.save(newTicket);

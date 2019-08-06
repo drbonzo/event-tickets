@@ -41,6 +41,9 @@ yarn typeorm migration:run
 
 ```
 docker-compose up
+docker exec -it event-tickets /bin/sh
+yarn typeorm migration:run
+
 ```
 
 Then open [http://localhost:3000](http://localhost:3000)

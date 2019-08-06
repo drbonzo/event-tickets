@@ -1,6 +1,7 @@
-import { AbstractRepository } from "typeorm";
+import { AbstractRepository, EntityRepository } from "typeorm";
 import { Purchase } from "../../../entity/Purchase";
 
+@EntityRepository(Purchase)
 export class PurchaseRepository extends AbstractRepository<Purchase> {
     // FIXME this could be optimized:
     // TODO for Sorting - use QueryBuilder
