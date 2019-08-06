@@ -5,9 +5,9 @@ import { Ticket, TICKET_STATUS_RESERVED } from "../../../entity/Ticket";
 import { Connection, EntityManager } from "typeorm";
 import { DATABASE_CONNECTION } from "../../../providers/provider-names";
 import { PurchaseValidatorService } from "./purchase-validator/purchase-validator.service";
-import { TicketService } from "../ticket/ticket.service";
 import { PurchaseRepository } from "./PurchaseRepository";
 import { CustomerRepository } from "../customer/CustomerRepository";
+import { TicketRepository } from "../ticket/TicketRepository";
 
 const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
 
@@ -31,7 +31,6 @@ export class PurchaseService {
     constructor(
         @Inject(DATABASE_CONNECTION) private readonly databaseConnection: Connection,
         private readonly purchaseValidatorService: PurchaseValidatorService,
-        private readonly ticketService: TicketService,
     ) {}
 
     async findPurchaseWithTicketAndTicketTypeAndEvent(id: number): Promise<Purchase | undefined> {
@@ -85,12 +84,9 @@ export class PurchaseService {
 
                 const newPurchase = this.buildNewPurchase(customer);
 
-                // Find tickets
-                // FIXME REFACTOR:2 - move to repository
-                const ticketsToReserve = await this.ticketService.findTickets(
-                    ticketIds,
-                    transactionalEntityManager,
-                );
+                const ticketsToReserve = await transactionalEntityManager
+                    .getCustomRepository(TicketRepository)
+                    .findTicketsByIdsWithTicketTypeAndWithEvent(ticketIds);
 
                 const eventIdsFromTickets: number[] = ticketsToReserve.map(ticket => {
                     return ticket.ticketType.event.id;

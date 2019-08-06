@@ -8,7 +8,6 @@ import { EventsController } from "./api/v1/events/events.controller";
 import { LoadFixturesController } from "./api/v1/admin/load-fixtures.controller";
 import { PurchasesController } from "./api/v1/purchases/purchases.controller";
 import { EventsService } from "./api/v1/events/events.service";
-import { TicketService } from "./api/v1/ticket/ticket.service";
 import { PurchaseValidatorService } from "./api/v1/purchases/purchase-validator/purchase-validator.service";
 import { PurchaseService } from "./api/v1/purchases/purchase.service";
 
@@ -32,7 +31,6 @@ import { PurchaseService } from "./api/v1/purchases/purchase.service";
             },
         },
         EventsService,
-        TicketService,
         PurchaseService,
         PurchaseValidatorService,
     ],

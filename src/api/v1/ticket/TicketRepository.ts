@@ -51,4 +51,17 @@ export class TicketRepository extends AbstractRepository<Ticket> {
 
         return result[0].availableTicketCount;
     }
+
+    async findTicketsByIdsWithTicketTypeAndWithEvent(ticketIds: number[]): Promise<Ticket[]> {
+        const tickets: Ticket[] = await this.repository
+            .createQueryBuilder("ticket")
+            .where("ticket.id IN (:...ids)", { ids: ticketIds })
+            .andWhere("ticket.status = :ticketStatus", { ticketStatus: TICKET_STATUS_AVAILABLE })
+            .innerJoinAndSelect("ticket.ticketType", "ticketType")
+            // FIXME add Ticket.event property? to get rid of this join?
+            .innerJoinAndSelect("ticketType.event", "eventEntity")
+            .getMany();
+
+        return tickets;
+    }
 }
