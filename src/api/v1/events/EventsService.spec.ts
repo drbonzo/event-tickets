@@ -1,7 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { EventsService } from "./EventsService";
 
-describe("EventsService", () => {
+// FIXME add tests
+describe.skip("EventsService", () => {
     let service: EventsService;
 
     beforeEach(async () => {

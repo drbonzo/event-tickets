@@ -1,7 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { LoadFixturesController } from "./LoadFixturesController";
 
-describe("LoadFixtures Controller", () => {
+// FIXME add tests
+describe.skip("LoadFixtures Controller", () => {
     let controller: LoadFixturesController;
 
     beforeEach(async () => {

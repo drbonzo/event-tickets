@@ -13,6 +13,9 @@ exports[`AppController root should return "Hello World!" 1`] = `
 	<li>
 		<code>GET http://localhost:3000/api/v1/events/{id}</code>
 	</li>
+	<li>
+		<code>GET http://localhost:3000/api/v1/purchases/{id}</code>
+	</li>
 </ul>
 
 <h2>Administration</h2>

@@ -1,7 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { PurchasesController } from "./PurchasesController";
 
-describe("Purchases Controller", () => {
+// FIXME add tests
+describe.skip("Purchases Controller", () => {
     let controller: PurchasesController;
 
     beforeEach(async () => {
