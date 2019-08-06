@@ -1,7 +1,7 @@
 import { Body, Controller, Get, NotFoundException, Param, Post } from "@nestjs/common";
 import { Purchase } from "../../../entity/Purchase";
 import { CreatePurchaseDTO } from "./dto";
-import { PurchaseDetails, PurchaseService } from "./purchase.service";
+import { PurchaseDetails, PurchaseService } from "./PurchaseService";
 
 @Controller("/api/v1/purchases")
 export class PurchasesController {

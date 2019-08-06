@@ -3,13 +3,13 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { DATABASE_CONNECTION } from "./providers/provider-names";
 import { createConnection } from "typeorm";
-import { CreateEventsController } from "./api/v1/admin/create-events.controller";
-import { EventsController } from "./api/v1/events/events.controller";
-import { LoadFixturesController } from "./api/v1/admin/load-fixtures.controller";
-import { PurchasesController } from "./api/v1/purchases/purchases.controller";
-import { EventsService } from "./api/v1/events/events.service";
-import { PurchaseValidatorService } from "./api/v1/purchases/purchase-validator/purchase-validator.service";
-import { PurchaseService } from "./api/v1/purchases/purchase.service";
+import { CreateEventsController } from "./api/v1/admin/CreateEventsController";
+import { EventsController } from "./api/v1/events/EventsController";
+import { LoadFixturesController } from "./api/v1/admin/LoadFixturesController";
+import { PurchasesController } from "./api/v1/purchases/PurchasesController";
+import { EventsService } from "./api/v1/events/EventsService";
+import { PurchaseService } from "./api/v1/purchases/PurchaseService";
+import { PurchaseValidatorService } from "./api/v1/purchases/PurchaseValidatorService";
 
 @Module({
     imports: [],

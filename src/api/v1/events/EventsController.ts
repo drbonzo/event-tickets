@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from "@nestjs/common";
-import { EventsService, EventWithTicketTypesAndTickets } from "./events.service";
+import { EventsService, EventWithTicketTypesAndTickets } from "./EventsService";
 import { EventWithTicketCounts } from "./EventEntityRepository";
 
 @Controller("/api/v1/events")

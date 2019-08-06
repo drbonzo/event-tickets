@@ -1,15 +1,14 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { Ticket, TICKET_STATUS_AVAILABLE } from "../../../../entity/Ticket";
 import { EntityManager } from "typeorm";
+import { Ticket } from "../../../entity/Ticket";
+import { EventEntityRepository } from "../events/EventEntityRepository";
 import {
     SELLING_OPTION_ALL_TOGETHER,
     SELLING_OPTION_AVOID_ONE,
     SELLING_OPTION_EVEN,
     TicketType,
-} from "../../../../entity/TicketType";
-import { EventEntity } from "../../../../entity/EventEntity";
-import { EventEntityRepository } from "../../events/EventEntityRepository";
-import { TicketRepository } from "../../ticket/TicketRepository";
+} from "../../../entity/TicketType";
+import { TicketRepository } from "../ticket/TicketRepository";
 
 @Injectable()
 export class PurchaseValidatorService {

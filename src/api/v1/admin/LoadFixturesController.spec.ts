@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { LoadFixturesController } from "./load-fixtures.controller";
+import { LoadFixturesController } from "./LoadFixturesController";
 
 describe("LoadFixtures Controller", () => {
     let controller: LoadFixturesController;
