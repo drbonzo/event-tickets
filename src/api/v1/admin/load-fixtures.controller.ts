@@ -16,11 +16,7 @@ import {
     TICKET_STATUS_SOLD,
 } from "../../../entity/Ticket";
 import { Customer } from "../../../entity/Customer";
-import {
-    Purchase,
-    PURCHASE_STATUS_PAID,
-    PURCHASE_STATUS_WAITS_FOR_PAYMENT,
-} from "../../../entity/Purchase";
+import { Purchase, PURCHASE_STATUS_PAID } from "../../../entity/Purchase";
 
 // Simplifiex Date modifiation
 const addNDaysFromNow = (daysCount: number): string => {
