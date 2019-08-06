@@ -4,8 +4,9 @@ import { Customer } from "../../../entity/Customer";
 import { Ticket, TICKET_STATUS_RESERVED } from "../../../entity/Ticket";
 import { Connection, EntityManager } from "typeorm";
 import { DATABASE_CONNECTION } from "../../../providers/provider-names";
-import { PurchaseValidatorService } from "../purchases/purchase-validator/purchase-validator.service";
+import { PurchaseValidatorService } from "./purchase-validator/purchase-validator.service";
 import { TicketService } from "../ticket/ticket.service";
+import { PurchaseRepository } from "./PurchaseRepository";
 
 const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
 
@@ -32,13 +33,11 @@ export class PurchaseService {
         private readonly ticketService: TicketService,
     ) {}
 
-    async findPurchase(id: number): Promise<Purchase | undefined> {
-        const purchaseRepository = this.databaseConnection.getRepository(Purchase);
-        // FIXME this could be optimized:
-        // TODO for Sorting - use QueryBuilder
-        const purchase: Purchase | undefined = await purchaseRepository.findOne(id, {
-            relations: ["tickets", "tickets.ticketType", "tickets.ticketType.event"],
-        });
+    async findPurchaseWithTicketAndTicketTypeAndEvent(id: number): Promise<Purchase | undefined> {
+        const purchaseRepository = this.databaseConnection.getCustomRepository(PurchaseRepository);
+        const purchase:
+            | Purchase
+            | undefined = await purchaseRepository.findPurchaseWithTicketAndTicketTypeAndEvent(id);
 
         return purchase;
     }

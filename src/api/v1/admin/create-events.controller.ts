@@ -5,6 +5,9 @@ import { DATABASE_CONNECTION } from "../../../providers/provider-names";
 import { Connection, EntityManager } from "typeorm";
 import { TicketType } from "../../../entity/TicketType";
 import { Ticket, TICKET_STATUS_AVAILABLE } from "../../../entity/Ticket";
+import { TicketTypeRepository } from "../ticket-type/TicketTypeRepository";
+import { TicketRepository } from "../ticket/TicketRepository";
+import { EventEntityRepository } from "../events/EventEntityRepository";
 
 @Controller("/api/v1/admin/events")
 export class CreateEventsController {
@@ -19,7 +22,9 @@ export class CreateEventsController {
                 newEvent.name = createEvent.event.name; // FIXME validate
                 newEvent.startDateTime = new Date(createEvent.event.startDateTime).valueOf(); // ISO -> number// FIXME validate
 
-                const eventRepository = transactionalEntityManager.getRepository(EventEntity);
+                const eventRepository = transactionalEntityManager.getCustomRepository(
+                    EventEntityRepository,
+                );
                 await eventRepository.save(newEvent);
 
                 await this.createTicketTypes(
@@ -44,7 +49,7 @@ export class CreateEventsController {
         if (createTicketTypesDtos.length === 0) {
             throw new BadRequestException("Event must have at least single TicketType");
         }
-        const ticketTypeRepository = entityManager.getRepository(TicketType);
+        const ticketTypeRepository = entityManager.getCustomRepository(TicketTypeRepository);
 
         const promises: Array<Promise<TicketType>> = createTicketTypesDtos.map(
             async (createTicketType: CreateTicketTypeDTO) => {
@@ -78,7 +83,7 @@ export class CreateEventsController {
             );
         }
 
-        const ticketRepository = entityManager.getRepository(Ticket);
+        const ticketRepository = entityManager.getCustomRepository(TicketRepository);
 
         const newTicketPromises: Array<Promise<Ticket>> = [];
         for (let n = 0; n < numberOfTicketsToCreate; n++) {

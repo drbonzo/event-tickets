@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Customer } from "../../../entity/Customer";
 import { EntityManager } from "typeorm";
+import { CustomerRepository } from "./CustomerRepository";
 
 @Injectable()
 export class CustomerService {
@@ -8,6 +9,6 @@ export class CustomerService {
         customerId: number,
         entityManager: EntityManager,
     ): Promise<Customer | undefined> {
-        return await entityManager.getRepository(Customer).findOne(customerId);
+        return await entityManager.getCustomRepository(CustomerRepository).findOne(customerId);
     }
 }

@@ -14,7 +14,7 @@ import { Purchase } from "../../../entity/Purchase";
 import { CreatePurchaseDTO } from "./dto";
 import { Customer } from "../../../entity/Customer";
 import { CustomerService } from "../customer/customer.service";
-import { PurchaseDetails, PurchaseService } from "../purchase/purchase.service";
+import { PurchaseDetails, PurchaseService } from "./purchase.service";
 
 @Controller("/api/v1/purchases")
 export class PurchasesController {
@@ -62,7 +62,7 @@ export class PurchasesController {
 
     @Get("/:id")
     public async getPurchaseStatus(@Param("id") id: number): Promise<PurchaseDetails> {
-        const purchase = await this.purchaseService.findPurchase(id);
+        const purchase = await this.purchaseService.findPurchaseWithTicketAndTicketTypeAndEvent(id);
 
         if (purchase === undefined) {
             throw new NotFoundException(`Purchase not found`);

@@ -2,20 +2,10 @@ import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { DATABASE_CONNECTION } from "../../../providers/provider-names";
 import { Connection } from "typeorm";
 import { EventEntity } from "../../../entity/EventEntity";
-import {
-    Ticket,
-    TICKET_STATUS_AVAILABLE,
-    TICKET_STATUS_RESERVED,
-    TICKET_STATUS_SOLD,
-} from "../../../entity/Ticket";
+import { Ticket, TICKET_STATUS_AVAILABLE } from "../../../entity/Ticket";
 import { TicketType } from "../../../entity/TicketType";
-
-export interface EventWithTicketCounts {
-    id: number;
-    name: string;
-    startDateTime: number; // unix timestamp
-    availableTicketsCount: number;
-}
+import { EventEntityRepository, EventWithTicketCounts } from "./EventEntityRepository";
+import { TicketCountsGroupedByTicketType, TicketRepository } from "../ticket/TicketRepository";
 
 export interface EventWithTicketTypesAndTickets {
     event: {
@@ -28,15 +18,8 @@ export interface EventWithTicketTypesAndTickets {
 
 interface TicketTypeDetails {
     ticketType: TicketType;
-    ticketCounts: TicketCountsForTicketType;
+    ticketCounts: TicketCountsGroupedByTicketType;
     availableTicketIds: number[];
-}
-
-interface TicketCountsForTicketType {
-    id: number;
-    availableTicketCount: number;
-    reservedTicketCount: number;
-    soldTicketCount: number;
 }
 
 @Injectable()
@@ -45,40 +28,21 @@ export class EventsService {
 
     async getAllEvents(): Promise<EventWithTicketCounts[]> {
         // FIXME REFACTORING: custom repository? EventEntity
-        const eventRepository = this.databaseConnection.getRepository(EventEntity);
+        const eventRepository = this.databaseConnection.getCustomRepository(EventEntityRepository);
 
         const now = Date.now();
 
-        // TODO Uses corelated subquery - fetch all Events and then do separate count of Tickets + merge results
-        const eventWithTicketCounts: EventWithTicketCounts[] = await eventRepository.query(
-            `SELECT event_entity.id,
-                        event_entity.name,
-                        event_entity.startDateTime,
-                        (
-                          SELECT COUNT(*)
-                          FROM ticket_type tt
-                                 LEFT JOIN ticket t on tt.id = t.ticketTypeId
-                          WHERE tt.eventId = event_entity.id
-                            and t.status = ?
-                        ) as availableTicketsCount
-                 FROM event_entity
-                 WHERE event_entity.startDateTime > ?
-                 GROUP BY event_entity.id`,
-            [TICKET_STATUS_AVAILABLE, now],
+        const eventWithTicketCounts: EventWithTicketCounts[] = await eventRepository.getEventWithTicketCounts(
+            now,
         );
-
         // TODO format date time: event.startDateTime
         return eventWithTicketCounts;
     }
 
     async getEventDetails(id: number) {
-        // FIXME REFACTORING: custom repository? EventEntity
-        const eventRepository = this.databaseConnection.getRepository(EventEntity);
+        const eventRepository = this.databaseConnection.getCustomRepository(EventEntityRepository);
 
-        // Find Event
-        const event: EventEntity | undefined = await eventRepository.findOne(id, {
-            relations: ["ticketTypes"],
-        });
+        const event: EventEntity | undefined = await eventRepository.findOneJoinTicketTypes(id);
 
         if (event === undefined) {
             throw new NotFoundException(`Event not found`);
@@ -102,17 +66,9 @@ export class EventsService {
         });
 
         // Count Tickets for each TicketType by Ticket.status
-        // TODO Uses corelated subqueries, may need optimization: fetch all TicketTypes and then just counts + merge results
-        const ticketTypesWithTicketCounts: TicketCountsForTicketType[] = await eventRepository.query(
-            `SELECT tt.id,
-                        (SELECT COUNT(*) FROM ticket WHERE ticket.ticketTypeId = tt.id AND ticket.status = ?) AS availableTicketCount,
-                        (SELECT COUNT(*) FROM ticket WHERE ticket.ticketTypeId = tt.id AND ticket.status = ?) AS reservedTicketCount,
-                        (SELECT COUNT(*) FROM ticket WHERE ticket.ticketTypeId = tt.id AND ticket.status = ?) AS soldTicketCount
-
-                 FROM ticket_type tt
-                 WHERE tt.eventId = ?;`,
-            [TICKET_STATUS_AVAILABLE, TICKET_STATUS_RESERVED, TICKET_STATUS_SOLD, event.id],
-        );
+        const ticketTypesWithTicketCounts: TicketCountsGroupedByTicketType[] = await this.databaseConnection
+            .getCustomRepository(TicketRepository)
+            .getTicketCountsForEventGroupedByTicketType(event);
 
         ticketTypesWithTicketCounts.forEach(ttwtc => {
             const ticketTypeDetails = ticketTypeDetailsMap.get(ttwtc.id);

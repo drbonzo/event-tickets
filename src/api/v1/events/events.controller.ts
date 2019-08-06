@@ -1,9 +1,6 @@
 import { Controller, Get, Param } from "@nestjs/common";
-import {
-    EventsService,
-    EventWithTicketCounts,
-    EventWithTicketTypesAndTickets,
-} from "./events.service";
+import { EventsService, EventWithTicketTypesAndTickets } from "./events.service";
+import { EventWithTicketCounts } from "./EventEntityRepository";
 
 @Controller("/api/v1/events")
 export class EventsController {

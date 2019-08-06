@@ -8,6 +8,8 @@ import {
     TicketType,
 } from "../../../../entity/TicketType";
 import { EventEntity } from "../../../../entity/EventEntity";
+import { EventEntityRepository } from "../../events/EventEntityRepository";
+import { TicketRepository } from "../../ticket/TicketRepository";
 
 @Injectable()
 export class PurchaseValidatorService {
@@ -35,7 +37,9 @@ export class PurchaseValidatorService {
         const eventId: number = eventIdsFromTickets[0];
 
         // Check if Event starts in the future
-        const event = await entityManager.getRepository(EventEntity).findOne(eventId);
+        const event = await entityManager
+            .getCustomRepository(EventEntityRepository)
+            .findOne(eventId);
         if (!event) {
             // TODO throw more Service-level exception
             throw new InternalServerErrorException("Event not found? id=" + eventId);
@@ -144,16 +148,8 @@ export class PurchaseValidatorService {
         ticketType: TicketType,
         entityManager: EntityManager,
     ): Promise<number> {
-        const result: Array<{
-            availableTicketCount: number;
-        }> = await entityManager.getRepository(Ticket).query(
-            `SELECT COUNT(*) AS availableTicketCount
-                     FROM ticket
-                     WHERE ticket.ticketTypeId = ?
-                       AND ticket.status = ? `,
-            [ticketType.id, TICKET_STATUS_AVAILABLE],
-        );
-
-        return result[0].availableTicketCount;
+        return await entityManager
+            .getCustomRepository(TicketRepository)
+            .countAvailableTicketsForTicketType(ticketType);
     }
 }
