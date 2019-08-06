@@ -22,8 +22,25 @@ interface TicketTypeDetails {
     availableTicketIds: number[];
 }
 
+export interface EventDetails {
+    event: {
+        id: number;
+        name: string;
+        startDateTime: number;
+    };
+    ticketTypes: TicketTypeDetails[];
+}
+
+export const EVENTS_SERVICE = Symbol("EVENTS_SERVICE");
+
+export interface EventsServiceInterface {
+    getAllEvents(): Promise<EventWithTicketCounts[]>;
+
+    getEventDetails(id: number): Promise<EventDetails>;
+}
+
 @Injectable()
-export class EventsService {
+export class EventsService implements EventsServiceInterface {
     constructor(@Inject(DATABASE_CONNECTION) private databaseConnection: Connection) {}
 
     async getAllEvents(): Promise<EventWithTicketCounts[]> {
@@ -39,7 +56,7 @@ export class EventsService {
         return eventWithTicketCounts;
     }
 
-    async getEventDetails(id: number) {
+    async getEventDetails(id: number): Promise<EventDetails> {
         const eventRepository = this.databaseConnection.getCustomRepository(EventEntityRepository);
 
         const event: EventEntity | undefined = await eventRepository.findOneJoinTicketTypes(id);

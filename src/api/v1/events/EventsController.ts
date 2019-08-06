@@ -1,10 +1,15 @@
-import { Controller, Get, Param } from "@nestjs/common";
-import { EventsService, EventWithTicketTypesAndTickets } from "./EventsService";
+import { Controller, Get, Inject, Param } from "@nestjs/common";
+import {
+    EVENTS_SERVICE,
+    EventsService,
+    EventsServiceInterface,
+    EventWithTicketTypesAndTickets,
+} from "./EventsService";
 import { EventWithTicketCounts } from "./EventEntityRepository";
 
 @Controller("/api/v1/events")
 export class EventsController {
-    constructor(private readonly eventsService: EventsService) {}
+    constructor(@Inject(EVENTS_SERVICE) private readonly eventsService: EventsServiceInterface) {}
 
     @Get("")
     public async getAllEvents(): Promise<EventWithTicketCounts[]> {

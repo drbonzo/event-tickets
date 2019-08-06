@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Events Controller getAllEvents() should return array of Events with some details 1`] = `
+Array [
+  Object {
+    "availableTicketsCount": 5,
+    "id": 1,
+    "name": "Event 1",
+    "startDateTime": 1234,
+  },
+  Object {
+    "availableTicketsCount": 10,
+    "id": 2,
+    "name": "Event 2",
+    "startDateTime": 5678,
+  },
+]
+`;
+
+exports[`Events Controller getEventDetails() should return Event with details 1`] = `
+Object {
+  "event": Object {
+    "id": 1,
+    "name": "Event 1",
+    "startDateTime": 1234,
+  },
+  "ticketTypes": Array [
+    Object {
+      "availableTicketIds": Array [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+      ],
+      "ticketCounts": Object {
+        "availableTicketCount": 10,
+        "id": 2,
+        "reservedTicketCount": 2,
+        "soldTicketCount": 4,
+      },
+      "ticketType": Object {
+        "event": EventEntity {},
+        "id": 2,
+        "name": "TicketType 2",
+        "price": 12.95,
+        "sellingOption": "even",
+        "tickets": Array [],
+      },
+    },
+  ],
+}
+`;

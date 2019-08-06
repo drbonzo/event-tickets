@@ -7,7 +7,7 @@ import { CreateEventsController } from "./api/v1/admin/CreateEventsController";
 import { EventsController } from "./api/v1/events/EventsController";
 import { LoadFixturesController } from "./api/v1/admin/LoadFixturesController";
 import { PurchasesController } from "./api/v1/purchases/PurchasesController";
-import { EventsService } from "./api/v1/events/EventsService";
+import { EVENTS_SERVICE, EventsService } from "./api/v1/events/EventsService";
 import { PurchaseService } from "./api/v1/purchases/PurchaseService";
 import { PurchaseValidatorService } from "./api/v1/purchases/PurchaseValidatorService";
 
@@ -30,7 +30,10 @@ import { PurchaseValidatorService } from "./api/v1/purchases/PurchaseValidatorSe
                 return connection;
             },
         },
-        EventsService,
+        {
+            provide: EVENTS_SERVICE,
+            useClass: EventsService,
+        },
         PurchaseService,
         PurchaseValidatorService,
     ],

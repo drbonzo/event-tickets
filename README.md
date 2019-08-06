@@ -37,3 +37,11 @@ Load fixtures:
 ```
 http POST http://localhost:3000/api/v1/admin/fixtures
 ```
+
+## Tests
+
+```
+yarn test
+yarn test:watch
+```
+
