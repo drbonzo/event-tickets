@@ -13,14 +13,13 @@ import { Connection, EntityManager } from "typeorm";
 import { Purchase } from "../../../entity/Purchase";
 import { CreatePurchaseDTO } from "./dto";
 import { Customer } from "../../../entity/Customer";
-import { CustomerService } from "../customer/customer.service";
 import { PurchaseDetails, PurchaseService } from "./purchase.service";
+import { CustomerRepository } from "../customer/CustomerRepository";
 
 @Controller("/api/v1/purchases")
 export class PurchasesController {
     constructor(
         @Inject(DATABASE_CONNECTION) private readonly databaseConnection: Connection,
-        private readonly customerService: CustomerService,
         private readonly purchaseService: PurchaseService,
     ) {}
 
@@ -32,10 +31,12 @@ export class PurchasesController {
             "SERIALIZABLE",
             async (transactionalEntityManager: EntityManager) => {
                 // FIXME add authorization for this
-                const customer: Customer | undefined = await this.customerService.findCustomer(
-                    createPurchaseDto.customerId,
-                    transactionalEntityManager,
-                );
+
+                const customer:
+                    | Customer
+                    | undefined = await transactionalEntityManager
+                    .getCustomRepository(CustomerRepository)
+                    .findOne(createPurchaseDto.customerId);
 
                 const ticketIds: number[] = Array.isArray(createPurchaseDto.ticketIds)
                     ? createPurchaseDto.ticketIds
