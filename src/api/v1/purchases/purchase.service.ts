@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Purchase, PURCHASE_STATUS_WAITS_FOR_PAYMENT } from "../../../entity/Purchase";
 import { Customer } from "../../../entity/Customer";
 import { Ticket, TICKET_STATUS_RESERVED } from "../../../entity/Ticket";
@@ -7,6 +7,7 @@ import { DATABASE_CONNECTION } from "../../../providers/provider-names";
 import { PurchaseValidatorService } from "./purchase-validator/purchase-validator.service";
 import { TicketService } from "../ticket/ticket.service";
 import { PurchaseRepository } from "./PurchaseRepository";
+import { CustomerRepository } from "../customer/CustomerRepository";
 
 const EXPIRE_PURCHASE_AFTER_SECONDS = 15 * 60;
 
@@ -63,32 +64,54 @@ export class PurchaseService {
         return purchaseDetails;
     }
 
-    public async reserveTickets(
-        customer: Customer,
-        ticketIds: number[],
-        entityManager: EntityManager,
-    ): Promise<Purchase> {
-        const newPurchase = this.buildNewPurchase(customer);
+    // FIXME add authorization for this
+    public async reserveTickets(customerId: number, ticketIds: number[]): Promise<Purchase> {
+        const purchase: Purchase = await this.databaseConnection.transaction(
+            "SERIALIZABLE",
+            async (transactionalEntityManager: EntityManager) => {
+                const customer:
+                    | Customer
+                    | undefined = await transactionalEntityManager
+                    .getCustomRepository(CustomerRepository)
+                    .findOne(customerId);
 
-        // Find tickets
-        const ticketsToReserve = await this.ticketService.findTickets(ticketIds, entityManager);
+                if (customer == null) {
+                    throw new BadRequestException("Customer does not exist");
+                }
 
-        const eventIdsFromTickets: number[] = ticketsToReserve.map(ticket => {
-            return ticket.ticketType.event.id;
-        });
+                if (ticketIds.length === 0) {
+                    throw new BadRequestException("You must reserve at least 1 ticket");
+                }
 
-        await this.purchaseValidatorService.validateTicketsForNewReservation(
-            ticketsToReserve,
-            ticketIds,
-            eventIdsFromTickets,
-            entityManager,
+                const newPurchase = this.buildNewPurchase(customer);
+
+                // Find tickets
+                // FIXME REFACTOR:2 - move to repository
+                const ticketsToReserve = await this.ticketService.findTickets(
+                    ticketIds,
+                    transactionalEntityManager,
+                );
+
+                const eventIdsFromTickets: number[] = ticketsToReserve.map(ticket => {
+                    return ticket.ticketType.event.id;
+                });
+
+                await this.purchaseValidatorService.validateTicketsForNewReservation(
+                    ticketsToReserve,
+                    ticketIds,
+                    eventIdsFromTickets,
+                    transactionalEntityManager,
+                );
+
+                this.addTicketsToPurchase(newPurchase, ticketsToReserve);
+
+                await transactionalEntityManager.save(newPurchase);
+
+                return newPurchase;
+            },
         );
 
-        this.addTicketsToPurchase(newPurchase, ticketsToReserve);
-
-        await entityManager.save(newPurchase);
-
-        return newPurchase;
+        return purchase;
     }
 
     private buildNewPurchase(customer: Customer): Purchase {

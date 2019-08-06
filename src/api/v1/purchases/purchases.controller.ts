@@ -1,61 +1,23 @@
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    Inject,
-    NotFoundException,
-    Param,
-    Post,
-} from "@nestjs/common";
-import { DATABASE_CONNECTION } from "../../../providers/provider-names";
-import { Connection, EntityManager } from "typeorm";
+import { Body, Controller, Get, NotFoundException, Param, Post } from "@nestjs/common";
 import { Purchase } from "../../../entity/Purchase";
 import { CreatePurchaseDTO } from "./dto";
-import { Customer } from "../../../entity/Customer";
 import { PurchaseDetails, PurchaseService } from "./purchase.service";
-import { CustomerRepository } from "../customer/CustomerRepository";
 
 @Controller("/api/v1/purchases")
 export class PurchasesController {
-    constructor(
-        @Inject(DATABASE_CONNECTION) private readonly databaseConnection: Connection,
-        private readonly purchaseService: PurchaseService,
-    ) {}
+    constructor(private readonly purchaseService: PurchaseService) {}
 
     @Post("/")
     public async reserveTickets(
         @Body() createPurchaseDto: CreatePurchaseDTO,
     ): Promise<PurchaseDetails> {
-        const purchase: Purchase = await this.databaseConnection.transaction(
-            "SERIALIZABLE",
-            async (transactionalEntityManager: EntityManager) => {
-                // FIXME add authorization for this
+        const ticketIds: number[] = Array.isArray(createPurchaseDto.ticketIds)
+            ? createPurchaseDto.ticketIds
+            : [createPurchaseDto.ticketIds];
 
-                const customer:
-                    | Customer
-                    | undefined = await transactionalEntityManager
-                    .getCustomRepository(CustomerRepository)
-                    .findOne(createPurchaseDto.customerId);
-
-                const ticketIds: number[] = Array.isArray(createPurchaseDto.ticketIds)
-                    ? createPurchaseDto.ticketIds
-                    : [createPurchaseDto.ticketIds];
-
-                if (customer == null) {
-                    throw new BadRequestException("Customer does not exist");
-                }
-
-                if (ticketIds.length === 0) {
-                    throw new BadRequestException("You must reserve at least 1 ticket");
-                }
-
-                return await this.purchaseService.reserveTickets(
-                    customer,
-                    ticketIds,
-                    transactionalEntityManager,
-                );
-            },
+        const purchase: Purchase = await this.purchaseService.reserveTickets(
+            createPurchaseDto.customerId,
+            ticketIds,
         );
 
         return this.purchaseService.buildPurchaseDetails(purchase);
